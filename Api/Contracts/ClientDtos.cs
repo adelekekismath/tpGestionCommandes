@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Api.Contracts;
 
-public record ClientCreatorDto(
+public record ClientCreateDto(
     [Required, StringLength(100)] string Nom,
     [Required, StringLength(100)] string Prenom,
     [Required, EmailAddress] string Email,
