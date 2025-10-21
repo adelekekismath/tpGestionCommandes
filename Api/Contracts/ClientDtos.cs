@@ -17,3 +17,12 @@ public record ClientUpdateDto(
     [Required, StringLength(30)] string Telephone,
     [Required, StringLength(200)] string Adresse
 );
+
+public record ClientReadDto(
+    int Id,
+    string Nom,
+    string Prenom,
+    string Email,
+    string Telephone,
+    string Adresse
+);

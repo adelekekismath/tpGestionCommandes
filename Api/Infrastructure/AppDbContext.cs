@@ -22,11 +22,13 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<Commande>()
         .Property(c => c.MontantTotal)
-        .HasPrecision(18, 2); 
+        .HasPrecision(18, 2);
 
-        modelBuilder.Entity<Commande>()
-        .Property(c => c.Statut)
-        .HasConversion<string>();
+         modelBuilder.Entity<Commande>()
+        .ToTable(t => t.HasCheckConstraint(
+            "CK_Commande_Statut_Valid",
+            "Statut IN ('EnAttente', 'EnCours', 'Livrée', 'Annulée', 'Expédiée')"
+        ));
 
         base.OnModelCreating(modelBuilder);
     }

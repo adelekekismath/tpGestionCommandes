@@ -10,7 +10,7 @@ public class CommandeValidatorTests
     [Fact]
     public void CreateDto_Invalid_When_Montant_Negatif()
     {
-        var dto = new CommandeCreateDto("ABC123", -10, StatutCommande.EnAttente, 1);
+        var dto = new CommandeCreateDto("ABC123", -10, "EnAttente", 1);
         var validator = new CommandeCreateDtoValidator();
         var result = validator.Validate(dto);
         result.IsValid.Should().BeFalse();
@@ -19,7 +19,7 @@ public class CommandeValidatorTests
     [Fact]
     public void CreateDto_Invalid_When_Statut_Invalide()
     {
-        var dto = new CommandeCreateDto("ABC123", 10, (StatutCommande)999, 1);
+        var dto = new CommandeCreateDto("ABC123", 10, "999", 1);
         var validator = new CommandeCreateDtoValidator();
         var result = validator.Validate(dto);
         result.IsValid.Should().BeFalse();
@@ -28,7 +28,7 @@ public class CommandeValidatorTests
     [Fact]
     public void UpdateDto_Invalid_When_Montant_Negatif()
     {
-        var dto = new CommandeUpdateDto(-20, StatutCommande.Traitee);
+        var dto = new CommandeUpdateDto(-20, "EnAttente");
         var validator = new CommandeUpdateDtoValidator();
         var result = validator.Validate(dto);
         result.IsValid.Should().BeFalse();
@@ -37,7 +37,7 @@ public class CommandeValidatorTests
     [Fact]
     public void UpdateDto_Invalid_When_Statut_Invalide()
     {
-        var dto = new CommandeUpdateDto(20, (StatutCommande)999);
+        var dto = new CommandeUpdateDto(20, "999");
         var validator = new CommandeUpdateDtoValidator();
         var result = validator.Validate(dto);
         result.IsValid.Should().BeFalse();
@@ -47,7 +47,7 @@ public class CommandeValidatorTests
     [Fact]
     public void CreateDto_Valid_When_All_Fields_Correct()
     {
-        var dto = new CommandeCreateDto("XYZ789", 50, StatutCommande.Traitee, 2);
+        var dto = new CommandeCreateDto("XYZ789", 50, "EnCours", 2);
         var validator = new CommandeCreateDtoValidator();
         var result = validator.Validate(dto);
         result.IsValid.Should().BeTrue();
@@ -57,7 +57,7 @@ public class CommandeValidatorTests
     [Fact]
     public void UpdateDto_Valid_When_All_Fields_Correct()
     {
-        var dto = new CommandeUpdateDto(100, StatutCommande.Expediee);
+        var dto = new CommandeUpdateDto(100, "Expédiée");
         var validator = new CommandeUpdateDtoValidator();
         var result = validator.Validate(dto);
         result.IsValid.Should().BeTrue();

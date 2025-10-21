@@ -7,7 +7,7 @@ public class Commande
     public string NumeroCommande { get; set; } = default!;
     public DateTime DateCommande { get; set; } = DateTime.UtcNow;
     public decimal MontantTotal { get; set; }
-    public StatutCommande Statut { get; set; } = StatutCommande.EnAttente;
+    public string Statut { get; set; } = StatutCommande.EnAttente.ToString();
 
    
     public int ClientId { get; set; }
