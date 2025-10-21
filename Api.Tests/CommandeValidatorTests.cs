@@ -1,12 +1,13 @@
 using Api.Contracts;
 using Api.Validation;
+using Api.Domain.Enums;
 using FluentAssertions;
 
 namespace Api.Tests;
 
 public class CommandeValidatorTests
 {
-    [Facts]
+    [Fact]
     public void CreateDto_Invalid_When_Montant_Negatif()
     {
         var dto = new CommandeCreateDto("ABC123", -10, StatutCommande.EnAttente, 1);

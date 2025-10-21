@@ -3,6 +3,10 @@ using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using Api.Infrastructure;
 using System.Text.Json.Serialization;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("Api.Tests")]
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,3 +43,5 @@ app.MapControllers();
 app.MapGet("/", () => "API Clients/Commandes OK");
 
 app.Run();
+
+public partial class Program { }
