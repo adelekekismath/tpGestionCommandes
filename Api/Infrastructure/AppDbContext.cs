@@ -19,5 +19,15 @@ public class AppDbContext : DbContext
             .WithOne(o => o.Client)
             .HasForeignKey(o => o.ClientId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Commande>()
+        .Property(c => c.MontantTotal)
+        .HasPrecision(18, 2); 
+
+        modelBuilder.Entity<Commande>()
+        .Property(c => c.Statut)
+        .HasConversion<string>();
+
+        base.OnModelCreating(modelBuilder);
     }
 }
