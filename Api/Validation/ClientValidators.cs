@@ -3,7 +3,7 @@ using FluentValidation;
 
 namespace Api.Validation;
 
-public class ClientCreateDtoValidator : AbstractValidator<ClientCreateDto>
+public class ClientCreateDtoValidator : AbstractValidator<ClientBaseDto>
 {
     public ClientCreateDtoValidator()
     {
@@ -28,7 +28,7 @@ public class ClientCreateDtoValidator : AbstractValidator<ClientCreateDto>
     }
 }
 
-public class ClientUpdateDtoValidator : AbstractValidator<ClientUpdateDto>
+public class ClientUpdateDtoValidator : AbstractValidator<ClientBaseDto>
 {
     public ClientUpdateDtoValidator()
     {

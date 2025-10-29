@@ -5,9 +5,7 @@ namespace Api.Infrastructure;
 
 public class AppDbContext : DbContext
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
-    {
-    }
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) {}
 
     public DbSet<Client> Clients => Set<Client>();
     public DbSet<Commande> Commandes => Set<Commande>();

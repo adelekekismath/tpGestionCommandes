@@ -33,6 +33,7 @@ app.UseExceptionHandler("/error");
 
 if (app.Environment.IsDevelopment())
 {
+    Console.WriteLine("In Development environment");
     app.UseSwagger();
     app.UseSwaggerUI();
 }

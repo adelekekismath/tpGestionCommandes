@@ -11,5 +11,5 @@ public class Client
     public DateTime DateCreation { get; set; } = DateTime.UtcNow;
 
     // Navigation
-    public ICollection<Commande> Commandes { get; set; } = new List<Commande>();
+    public ICollection<Commande> Commandes { get; set; } = [];
 }
