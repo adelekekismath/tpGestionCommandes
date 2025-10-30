@@ -90,7 +90,7 @@ namespace Api.Migrations
 
                     b.ToTable("Commandes", t =>
                         {
-                            t.HasCheckConstraint("CK_Commande_Statut_Valid", "Statut IN ('EnAttente', 'EnCours', 'Livrée', 'Annulée', 'Expédiée')");
+                            t.HasCheckConstraint("CK_Commande_Statut_Valid", "STATUT IN ('EnAttente', 'EnCours', 'Livrée', 'Annulée', 'Expédiée')");
                         });
                 });
 

@@ -1,11 +1,14 @@
 using Api.Contracts;
 using Api.Domain.Entities;
 using Api.Infrastructure;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Api.Controllers;
+[ApiController]
 [Route("api/[Controller]")]
+[Authorize]
 public class CommandesController(AppDbContext db): ControllerBase
 {
     [HttpGet]
