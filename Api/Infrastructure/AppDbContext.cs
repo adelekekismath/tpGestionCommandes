@@ -8,6 +8,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Client> Clients => Set<Client>();
     public DbSet<Commande> Commandes => Set<Commande>();
 
+    public DbSet<User> Users => Set<User>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Client>().
@@ -26,6 +28,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             "STATUT IN ('EnAttente', 'EnCours', 'Livrée', 'Annulée', 'Expédiée')"
 
         ));
+
+      
 
         base.OnModelCreating(modelBuilder);
     }

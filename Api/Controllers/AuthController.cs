@@ -4,17 +4,26 @@ using System.IdentityModel.Tokens.Jwt;
 using Api.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Api.Contracts;
+using Microsoft.AspNetCore.Identity;
+using Api.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController : ControllerBase
+public class AuthController: ControllerBase
 {
 
     private readonly IConfiguration _config;
+    private readonly AppDbContext _db;
 
-    public AuthController(IConfiguration config) => _config = config;
+    public AuthController(IConfiguration config, AppDbContext db)
+    {
+        _config = config;
+        _db = db;
+    }
 
     public record LoginRequest(string UserName, string Password);
     public record LoginResponse(string AccessToken, DateTime ExpiresAt);
@@ -50,9 +59,48 @@ public class AuthController : ControllerBase
         return Ok(new LoginResponse(jwt, expires));
     }
 
-    private static bool ValidateUser(string username, string password)
+    [HttpGet("{id}")]
+    [Authorize]
+    public async Task<IActionResult> GetById(int id)
     {
-        return username == "admin" && password == "P@ssw0rd!";
+        var user = await _db.Users.FindAsync(id);
+        if (user == null) return NotFound();
+
+        return Ok(user);
     }
+
+    private static string HashPassword(string password)
+    {
+        var hasher = new PasswordHasher<object>();
+        return hasher.HashPassword(null, password);
+    }
+
+
+
+    [HttpPost("register")]
+    public async Task<IActionResult> Register([FromBody] UserCreateDto userDto)
+    {
+        var user = new User
+        {
+            Username = userDto.Username,
+            PasswordHash = HashPassword(userDto.Password)
+        };
+
+        await _db.Users.AddAsync(user);
+        await _db.SaveChangesAsync();
+
+        return CreatedAtAction(nameof(GetById), new { id = user.Id }, user);
+    }
+
+    private bool ValidateUser(string username, string password)
+    {
+        var user = _db.Users.SingleOrDefault(u => u.Username == username);
+        if (user == null)
+            return false;
+
+        var hasher = new PasswordHasher<User>();
+        return hasher.VerifyHashedPassword(user, user.PasswordHash, password) == PasswordVerificationResult.Success;
+    }
+
 
 }

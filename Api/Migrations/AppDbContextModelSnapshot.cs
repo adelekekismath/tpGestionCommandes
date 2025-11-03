@@ -94,6 +94,23 @@ namespace Api.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Api.Domain.Entities.User", b =>
+                {
+                    b.Property<string>("Username")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Username");
+
+                    b.ToTable("Users");
+                });
+
             modelBuilder.Entity("Api.Domain.Entities.Commande", b =>
                 {
                     b.HasOne("Api.Domain.Entities.Client", "Client")
