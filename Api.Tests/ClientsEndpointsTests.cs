@@ -5,14 +5,17 @@ using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace Api.Tests;
 
-public class ClientsEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
+public class ClientsEndpointsTests : IClassFixture<CustomAuthFactory>
 {
     private readonly HttpClient _client;
     private int _clientId;
 
-    public ClientsEndpointsTests(WebApplicationFactory<Program> factory)
+    public ClientsEndpointsTests(CustomAuthFactory factory)
     {
         _client = factory.CreateClient();
+
+        _client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Test");
     }
 
     private async Task<int> GetOrCreateClientAsync()
