@@ -27,7 +27,7 @@ public class ClientsEndpointsTests : IClassFixture<CustomAuthFactory>
             return clients.First().Id;
         }
 
-        var dto = new ClientCreateDto("Doe", "Jane", "jane@ex.com", "0600000000", "Paris");
+        var dto = new ClientBaseDto("Doe", "Jane", "jane@ex.com", "0600000000", "Paris");
         var resp = await _client.PostAsJsonAsync("/api/clients", dto);
         resp.EnsureSuccessStatusCode();
 
@@ -38,7 +38,7 @@ public class ClientsEndpointsTests : IClassFixture<CustomAuthFactory>
     [Fact]
     public async Task Post_Client_Returns_Created()
     {
-        var dto = new ClientCreateDto("Smith", "John", "john.smith@example.com", "0700000000", "Lyon");
+        var dto = new ClientBaseDto("Smith", "John", "john.smith@example.com", "0700000000", "Lyon");
         var resp = await _client.PostAsJsonAsync("/api/clients", dto);
         Assert.Equal(HttpStatusCode.Created, resp.StatusCode);
     }
@@ -46,7 +46,7 @@ public class ClientsEndpointsTests : IClassFixture<CustomAuthFactory>
     [Fact]
     public async Task Post_Client_Invalid_Returns_BadRequest()
     {
-        var dto = new ClientCreateDto("D", "J", "invalid-email", "123", "");
+        var dto = new ClientBaseDto("D", "J", "invalid-email", "123", "");
         var resp = await _client.PostAsJsonAsync("/api/clients", dto);
 
         Assert.Equal(HttpStatusCode.BadRequest, resp.StatusCode);
@@ -86,7 +86,7 @@ public class ClientsEndpointsTests : IClassFixture<CustomAuthFactory>
     public async Task Put_Client_Returns_NoContent()
     {
         var id = await GetOrCreateClientAsync();
-        var dto = new ClientUpdateDto("Doe", "John", "john@ex.com", "0600000000", "Paris");
+        var dto = new ClientBaseDto("Doe", "John", "john@ex.com", "0600000000", "Paris");
 
         var resp = await _client.PutAsJsonAsync($"/api/clients/{id}", dto);
         Assert.Equal(HttpStatusCode.NoContent, resp.StatusCode);
@@ -96,7 +96,7 @@ public class ClientsEndpointsTests : IClassFixture<CustomAuthFactory>
     public async Task Delete_Client_Returns_NoContent()
     {
         // Crée un client à supprimer
-        var dto = new ClientCreateDto("Temp", "User", "temp@example.com", "0611111111", "Nice");
+        var dto = new ClientBaseDto("Temp", "User", "temp@example.com", "0611111111", "Nice");
         var respCreate = await _client.PostAsJsonAsync("/api/clients", dto);
         respCreate.EnsureSuccessStatusCode();
 

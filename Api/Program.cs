@@ -8,13 +8,12 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using System.Text.Unicode;
 
 [assembly: InternalsVisibleTo("Api.Tests")]
 
 
 var builder = WebApplication.CreateBuilder(args);
-
-
 
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseSqlServer(builder.Configuration.GetConnectionString("Default"))
@@ -23,34 +22,31 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 var jwt = builder.Configuration.GetSection("Jwt");
 var keyBytes = Encoding.UTF8.GetBytes(jwt["Key"]!);
 
-builder.Services
-  .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-  .AddJwtBearer(options =>
-  {
-      options.TokenValidationParameters = new TokenValidationParameters
-      {
-          ValidateIssuer = true,
-          ValidateAudience = true,
-          ValidateIssuerSigningKey = true,
-          ValidateLifetime = true,
-          ValidIssuer = jwt["Issuer"],
-          ValidAudience = jwt["Audience"],
-          IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
-          ClockSkew = TimeSpan.Zero   
-      };
-  });
-
-builder.Services.AddAuthorization(options =>
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+.AddJwtBearer(opt =>
 {
-    options.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
-});
+    opt.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateIssuerSigningKey = true,
+        ValidateLifetime = true,
+        ValidIssuer = jwt["Issuer"],
+        ValidAudience = jwt["Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
+        ClockSkew = TimeSpan.Zero
+    };
+}
 
+);
 
 builder.Services.AddControllers()
-    .AddJsonOptions(x => {
-        x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-        x.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-    });
+.AddJsonOptions(opt =>
+    {
+        opt.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        opt.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    }
+);
 
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
@@ -86,10 +82,9 @@ var app = builder.Build();
 
 app.UseExceptionHandler("/error");
 
-
 if (app.Environment.IsDevelopment())
 {
-    Console.WriteLine("In Development environment");
+    Console.WriteLine("In Development Environment");
     app.UseSwagger();
     app.UseSwaggerUI();
 }
@@ -100,10 +95,10 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapGet("/", () => "API Clients/Commandes OK");
+app.MapGet("/", () => "Bienvenue sur mon API");
 
 
 
 app.Run();
 
-public partial class Program { }
+public  partial class  Program{};
