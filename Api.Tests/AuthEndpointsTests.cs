@@ -1,5 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
+using Api.Contracts;
+using Api.Domain.Entities;
+using Microsoft.AspNetCore.Mvc.Testing;
+using System.Net.Http.Headers;
 
 namespace Api.Tests;
 
@@ -23,7 +27,7 @@ public class AuthEndpointsTests : IClassFixture<CustomAuthFactory>
 
         var created = await response.Content.ReadFromJsonAsync<User>();
         Assert.NotNull(created);
-        Assert.Equal("testuser", created!.UserName);
+        Assert.Equal("testuser", created!.Username);
     }
 
     [Fact]
@@ -32,7 +36,7 @@ public class AuthEndpointsTests : IClassFixture<CustomAuthFactory>
         var registerDto = new UserCreateDto("john", "Password1");
         await _client.PostAsJsonAsync("/api/auth/register", registerDto);
 
-        var loginDto = new { UserName = "john", Password = "Password1" };
+        var loginDto = new { Username = "john", Password = "Password1" };
         var resp = await _client.PostAsJsonAsync("/api/auth/login", loginDto);
 
         Assert.Equal(HttpStatusCode.OK, resp.StatusCode);
@@ -45,20 +49,21 @@ public class AuthEndpointsTests : IClassFixture<CustomAuthFactory>
     [Fact]
     public async Task Login_Should_Return_Unauthorized_When_Invalid_Credentials()
     {
-        var loginDto = new { UserName = "ghost", Password = "wrong" };
+        var loginDto = new { Username = "ghost", Password = "wrong" };
 
         var resp = await _client.PostAsJsonAsync("/api/auth/login", loginDto);
 
         Assert.Equal(HttpStatusCode.Unauthorized, resp.StatusCode);
     }
 
+    [Fact]
     public async Task GetById_Should_Return_User_When_Token_Is_Valid()
     {
         var registerDto = new UserCreateDto("secureduser", "Password1");
         var resp = await _client.PostAsJsonAsync("/api/auth/register", registerDto);
         var user = await resp.Content.ReadFromJsonAsync<User>();
 
-        var loginDto = new { UserName = "secureduser", Password = "Password1" };
+        var loginDto = new { Username = "secureduser", Password = "Password1" };
         var loginResp = await _client.PostAsJsonAsync("/api/auth/login", loginDto);
         var token = (await loginResp.Content.ReadFromJsonAsync<LoginResponse>())!.AccessToken;
 

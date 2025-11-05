@@ -5,10 +5,10 @@ namespace Api.Infrastructure;
 
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
-    public DbSet<Client> Clients => Set<Client>();
-    public DbSet<Commande> Commandes => Set<Commande>();
+    public virtual DbSet<Client> Clients => Set<Client>();
+    public virtual DbSet<Commande> Commandes => Set<Commande>();
 
-    public DbSet<User> Users => Set<User>();
+    public virtual DbSet<User> Users => Set<User>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -29,10 +29,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
         ));
 
-      
-
         base.OnModelCreating(modelBuilder);
     }
-
-
 }

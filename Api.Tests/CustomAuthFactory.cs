@@ -1,50 +1,68 @@
 using Api.Domain.Entities;
 using Api.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
-using Moq;
-
-namespace Api.Tests;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Hosting;
 
 public class CustomAuthFactory : WebApplicationFactory<Program>
 {
-    protected override void ConfigureWebHost(Microsoft.AspNetCore.Hosting.IWebHostBuilder builder)
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        builder.UseEnvironment("Test");
+
         builder.ConfigureServices(services =>
         {
-            var descriptor = services.SingleOrDefault(
-                d => d.ServiceType == typeof(DbContextOptions<AppDbContext>)
-            );
-            if (descriptor != null)
+            // 🔹 Supprimer les anciens contextes
+            var dbContextDescriptors = services
+                .Where(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>))
+                .ToList();
+            foreach (var descriptor in dbContextDescriptors)
                 services.Remove(descriptor);
 
-            var mockDb = new Mock<AppDbContext>(new DbContextOptions<AppDbContext>());
+            var appDbDescriptors = services
+                .Where(d => d.ServiceType == typeof(AppDbContext))
+                .ToList();
+            foreach (var descriptor in appDbDescriptors)
+                services.Remove(descriptor);
 
-            var fakeUsers = new List<User>
+            // 🔹 Créer une base InMemory unique
+            services.AddDbContext<AppDbContext>(options =>
+                options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
+
+            var sp = services.BuildServiceProvider();
+
+            // 🔹 Recréer la base et insérer des données de test
+            using (var scope = sp.CreateScope())
             {
-                new() {
-                    Id = 1,
-                    Username = "mockuser",
-                    PasswordHash = new Microsoft.AspNetCore.Identity.PasswordHasher<User>().HashPassword(null, "P@ssw0rd!")
-                },
-                new() {
-                    Id = 2,
-                    Username = "testuser",
-                    PasswordHash = new Microsoft.AspNetCore.Identity.PasswordHasher<User>().HashPassword(null, "Test1234")
-                }
-            }.AsQueryable();
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-            var mockUsers = new Mock<DbSet<User>>();
-            mockUsers.As<IQueryable<User>>().Setup(m => m.Provider).Returns(fakeUsers.Provider);
-            mockUsers.As<IQueryable<User>>().Setup(m => m.Expression).Returns(fakeUsers.Expression);
-            mockUsers.As<IQueryable<User>>().Setup(m => m.ElementType).Returns(fakeUsers.ElementType);
-            mockUsers.As<IQueryable<User>>().Setup(m => m.GetEnumerator()).Returns(fakeUsers.GetEnumerator());
+                db.Database.EnsureDeleted();
+                db.Database.EnsureCreated();
+                db.ChangeTracker.Clear();
+                db.ChangeTracker.AutoDetectChangesEnabled = false;
 
-            mockDb.Setup(db => db.Users).Returns(mockUsers.Object);
+                var hasher = new Microsoft.AspNetCore.Identity.PasswordHasher<User>();
 
-            services.AddSingleton(mockDb.Object);
+                db.Users.AddRange(
+                    new User { Username = "mockuser", PasswordHash = hasher.HashPassword(null, "P@ssw0rd!") },
+                    new User { Username = "testuser", PasswordHash = hasher.HashPassword(null, "Test1234") }
+                );
 
+                db.Clients.AddRange(
+                    new Client { Nom = "Smith", Prenom = "Alice", Email = "alice@test.com", Adresse = "Paris", Telephone = "0600000000" },
+                    new Client { Nom = "Jones", Prenom = "Bob", Email = "bob@test.com", Adresse = "Lyon", Telephone = "0700000000" }
+                );
+
+                db.SaveChanges();
+                db.ChangeTracker.AutoDetectChangesEnabled = true;
+            }
+
+            // 🔹 Authentification fictive pour tests
             services.AddAuthentication("Test")
                 .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", options => { });
         });
@@ -56,11 +74,9 @@ public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions
     public TestAuthHandler(
         IOptionsMonitor<AuthenticationSchemeOptions> options,
         ILoggerFactory logger,
-        System.Text.Encoder encoder,
+        System.Text.Encodings.Web.UrlEncoder encoder,
         ISystemClock clock)
-        : base(options, logger, encoder, clock)
-    {
-    }
+        : base(options, logger, encoder, clock) { }
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {

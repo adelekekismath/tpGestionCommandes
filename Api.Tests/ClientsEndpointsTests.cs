@@ -8,7 +8,6 @@ namespace Api.Tests;
 public class ClientsEndpointsTests : IClassFixture<CustomAuthFactory>
 {
     private readonly HttpClient _client;
-    private int _clientId;
 
     public ClientsEndpointsTests(CustomAuthFactory factory)
     {
@@ -95,7 +94,6 @@ public class ClientsEndpointsTests : IClassFixture<CustomAuthFactory>
     [Fact]
     public async Task Delete_Client_Returns_NoContent()
     {
-        // Crée un client à supprimer
         var dto = new ClientBaseDto("Temp", "User", "temp@example.com", "0611111111", "Nice");
         var respCreate = await _client.PostAsJsonAsync("/api/clients", dto);
         respCreate.EnsureSuccessStatusCode();
