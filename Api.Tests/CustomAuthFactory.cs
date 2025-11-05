@@ -59,12 +59,4 @@ public class CustomAuthFactory : WebApplicationFactory<Program>
 
         });
     }
-
-    public void ResetDatabase()
-    {
-        using var scope = Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        db.Database.EnsureDeleted();
-        db.Database.EnsureCreated();
-    }
 }
