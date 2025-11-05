@@ -17,7 +17,6 @@ public class CustomAuthFactory : WebApplicationFactory<Program>
 
         builder.ConfigureServices(services =>
         {
-            // 🔹 Supprimer les anciens contextes
             var dbContextDescriptors = services
                 .Where(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>))
                 .ToList();
@@ -30,67 +29,42 @@ public class CustomAuthFactory : WebApplicationFactory<Program>
             foreach (var descriptor in appDbDescriptors)
                 services.Remove(descriptor);
 
-            // 🔹 Créer une base InMemory unique
             services.AddDbContext<AppDbContext>(options =>
-                options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
+                options.UseInMemoryDatabase("TestDb"));
 
             var sp = services.BuildServiceProvider();
 
-            // 🔹 Recréer la base et insérer des données de test
-            using (var scope = sp.CreateScope())
-            {
-                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            using var scope = sp.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-                db.Database.EnsureDeleted();
-                db.Database.EnsureCreated();
-                db.ChangeTracker.Clear();
-                db.ChangeTracker.AutoDetectChangesEnabled = false;
+            db.Database.EnsureDeleted();
+            db.Database.EnsureCreated();
+            db.ChangeTracker.Clear();
+            db.ChangeTracker.AutoDetectChangesEnabled = false;
 
-                var hasher = new Microsoft.AspNetCore.Identity.PasswordHasher<User>();
+            var hasher = new Microsoft.AspNetCore.Identity.PasswordHasher<User>();
 
-                db.Users.AddRange(
-                    new User { Username = "mockuser", PasswordHash = hasher.HashPassword(null, "P@ssw0rd!") },
-                    new User { Username = "testuser", PasswordHash = hasher.HashPassword(null, "Test1234") }
-                );
+            db.Users.AddRange(
+                new User { Username = "mockuser", PasswordHash = hasher.HashPassword(null, "P@ssw0rd!") },
+                new User { Username = "testuser", PasswordHash = hasher.HashPassword(null, "Test1234") }
+            );
 
-                db.Clients.AddRange(
-                    new Client { Nom = "Smith", Prenom = "Alice", Email = "alice@test.com", Adresse = "Paris", Telephone = "0600000000" },
-                    new Client { Nom = "Jones", Prenom = "Bob", Email = "bob@test.com", Adresse = "Lyon", Telephone = "0700000000" }
-                );
+            db.Clients.AddRange(
+                new Client { Nom = "Smith", Prenom = "Alice", Email = "alice@test.com", Adresse = "Paris", Telephone = "0600000000" },
+                new Client { Nom = "Jones", Prenom = "Bob", Email = "bob@test.com", Adresse = "Lyon", Telephone = "0700000000" }
+            );
 
-                db.SaveChanges();
-                db.ChangeTracker.AutoDetectChangesEnabled = true;
-            }
+            db.SaveChanges();
+            db.ChangeTracker.AutoDetectChangesEnabled = true;
 
-            // 🔹 Authentification fictive pour tests
-            services.AddAuthentication("Test")
-                .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", options => { });
         });
     }
-}
 
-public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
-{
-    public TestAuthHandler(
-        IOptionsMonitor<AuthenticationSchemeOptions> options,
-        ILoggerFactory logger,
-        System.Text.Encodings.Web.UrlEncoder encoder,
-        ISystemClock clock)
-        : base(options, logger, encoder, clock) { }
-
-    protected override Task<AuthenticateResult> HandleAuthenticateAsync()
+    public void ResetDatabase()
     {
-        var claims = new[]
-        {
-            new Claim(ClaimTypes.Name, "mockuser"),
-            new Claim(ClaimTypes.NameIdentifier, "1"),
-            new Claim(ClaimTypes.Role, "Admin")
-        };
-
-        var identity = new ClaimsIdentity(claims, "Test");
-        var principal = new ClaimsPrincipal(identity);
-        var ticket = new AuthenticationTicket(principal, "Test");
-
-        return Task.FromResult(AuthenticateResult.Success(ticket));
+        using var scope = Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        db.Database.EnsureDeleted();
+        db.Database.EnsureCreated();
     }
 }

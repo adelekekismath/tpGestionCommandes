@@ -2,6 +2,8 @@ using System.Net;
 using System.Net.Http.Json;
 using Api.Contracts;
 using Microsoft.AspNetCore.Mvc.Testing;
+using System.Net.Http.Headers;
+using Api.Domain.Entities;
 
 namespace Api.Tests;
 
@@ -9,12 +11,32 @@ public class ClientsEndpointsTests : IClassFixture<CustomAuthFactory>
 {
     private readonly HttpClient _client;
 
+    private static string? _token;
+    
+    private readonly CustomAuthFactory _factory;
+
     public ClientsEndpointsTests(CustomAuthFactory factory)
     {
+        _factory = factory;
         _client = factory.CreateClient();
+        
+
+        _token ??= AuthenticateOnceAsync().GetAwaiter().GetResult();
 
         _client.DefaultRequestHeaders.Authorization =
-            new System.Net.Http.Headers.AuthenticationHeaderValue("Test");
+            new AuthenticationHeaderValue("Bearer", _token);
+    }
+    
+    private async Task<string> AuthenticateOnceAsync()
+    {
+        var uniqueUsername = $"clientUser_{DateTime.UtcNow.Ticks}";
+        var registerDto = new UserCreateDto(uniqueUsername, "Password1");
+        await _client.PostAsJsonAsync("/api/auth/register", registerDto);
+
+        var loginDto = new { Username = uniqueUsername, Password = "Password1" };
+        var loginResp = await _client.PostAsJsonAsync("/api/auth/login", loginDto);
+        var loginData = await loginResp.Content.ReadFromJsonAsync<LoginResponse>();
+        return loginData!.AccessToken;
     }
 
     private async Task<int> GetOrCreateClientAsync()
@@ -27,10 +49,10 @@ public class ClientsEndpointsTests : IClassFixture<CustomAuthFactory>
         }
 
         var dto = new ClientBaseDto("Doe", "Jane", "jane@ex.com", "0600000000", "Paris");
-        var resp = await _client.PostAsJsonAsync("/api/clients", dto);
-        resp.EnsureSuccessStatusCode();
+        var response = await _client.PostAsJsonAsync("/api/clients", dto);
+        response.EnsureSuccessStatusCode();
 
-        var created = await resp.Content.ReadFromJsonAsync<ClientReadDto>();
+        var created = await response.Content.ReadFromJsonAsync<ClientReadDto>();
         return created!.Id;
     }
 
@@ -38,8 +60,9 @@ public class ClientsEndpointsTests : IClassFixture<CustomAuthFactory>
     public async Task Post_Client_Returns_Created()
     {
         var dto = new ClientBaseDto("Smith", "John", "john.smith@example.com", "0700000000", "Lyon");
-        var resp = await _client.PostAsJsonAsync("/api/clients", dto);
-        Assert.Equal(HttpStatusCode.Created, resp.StatusCode);
+        var response = await _client.PostAsJsonAsync("/api/clients", dto);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        _client.DefaultRequestHeaders.Authorization = null;
     }
 
     [Fact]

@@ -59,8 +59,8 @@ public class AuthController: ControllerBase
         return Ok(new LoginResponse(jwt, expires));
     }
 
-    [HttpGet("{id}")]
     [Authorize]
+    [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
         var user = await _db.Users.FindAsync(id);
@@ -68,6 +68,15 @@ public class AuthController: ControllerBase
 
         return Ok(user);
     }
+
+    [Authorize]
+    [HttpGet("whoami")]
+    public IActionResult WhoAmI()
+    {
+        return Ok(User.Identity?.Name ?? "anonymous");
+    }
+
+    
 
     private static string HashPassword(string password)
     {

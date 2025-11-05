@@ -65,6 +65,9 @@ public class AuthEndpointsTests : IClassFixture<CustomAuthFactory>
 
         var loginDto = new { Username = "secureduser", Password = "Password1" };
         var loginResp = await _client.PostAsJsonAsync("/api/auth/login", loginDto);
+        Console.WriteLine($"Response Status: {loginResp.StatusCode}");
+        var rawBody = await loginResp.Content.ReadAsStringAsync();
+        Console.WriteLine($"Response Body: {rawBody}");
         var token = (await loginResp.Content.ReadFromJsonAsync<LoginResponse>())!.AccessToken;
 
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -77,6 +80,7 @@ public class AuthEndpointsTests : IClassFixture<CustomAuthFactory>
     [Fact]
     public async Task GetById_Should_Return_Unauthorized_When_No_Token()
     {
+        _client.DefaultRequestHeaders.Authorization = null;
         var resp = await _client.GetAsync("/api/auth/1");
         Assert.Equal(HttpStatusCode.Unauthorized, resp.StatusCode);
     }
