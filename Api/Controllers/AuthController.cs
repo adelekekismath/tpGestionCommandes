@@ -1,13 +1,14 @@
 using System.Security.Claims;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
-using Api.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using Api.Contracts;
 using Microsoft.AspNetCore.Identity;
-using Api.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
+using Api.Databases.Contexts;
+using Api.Domain.Entities;
+using Api.ViewModel.Validation;
+using Api.ViewModel.DTOs;
 
 namespace Api.Controllers;
 

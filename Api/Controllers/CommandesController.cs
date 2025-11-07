@@ -1,6 +1,6 @@
-using Api.Contracts;
+using Api.ViewModel.DTOs;
 using Api.Domain.Entities;
-using Api.Infrastructure;
+using Api.Databases.Contexts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

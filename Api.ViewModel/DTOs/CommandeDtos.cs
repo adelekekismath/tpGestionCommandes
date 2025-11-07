@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Api.Domain.Enums;
 
-namespace Api.Contracts;
+namespace Api.ViewModel.DTOs;
 
 public record CommandeCreateDto(
     [Required, StringLength(32)] string NumeroCommande,

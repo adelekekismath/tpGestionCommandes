@@ -1,7 +1,7 @@
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
-using Api.Infrastructure;
+using Api.Databases.Contexts;
 using System.Text.Json.Serialization;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -32,7 +32,11 @@ if (builder.Environment.IsEnvironment("Test"))
 else
 {
     builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseSqlServer(connectionString));
+        {
+            options.UseSqlServer(connectionString);
+            options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+        }
+    );
 }
 
 var jwt = builder.Configuration.GetSection("Jwt");

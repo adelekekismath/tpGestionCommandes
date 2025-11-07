@@ -1,8 +1,8 @@
 using System.Data;
-using Api.Contracts;
+using Api.ViewModel.DTOs;
 using FluentValidation;
 
-namespace Api.Validation;
+namespace Api.ViewModel.Validation;
 
 public class UserValidators : AbstractValidator<UserCreateDto>
 {

@@ -22,4 +22,10 @@
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Api.Databases\Api.Databases.csproj" />
+    <ProjectReference Include="..\Api.Domain\Api.Domain.csproj" />
+    <ProjectReference Include="..\Api.ViewModel\Api.ViewModel.csproj" />
+  </ItemGroup>
+
 </Project>

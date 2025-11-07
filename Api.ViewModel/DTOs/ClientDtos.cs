@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Api.Contracts;
+namespace Api.ViewModel.DTOs;
 
 public record ClientBaseDto(
     [Required, StringLength(100)] string Nom,

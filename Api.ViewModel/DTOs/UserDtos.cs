@@ -1,4 +1,4 @@
-namespace Api.Contracts;
+namespace Api.ViewModel.DTOs;
 
 public record UserCreateDto(
     string Username,

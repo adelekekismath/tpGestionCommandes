@@ -10,6 +10,6 @@ public class Client
     public string Adresse { get; set; } = default!;
     public DateTime DateCreation { get; set; } = DateTime.UtcNow;
 
-    // Navigation
+
     public ICollection<Commande> Commandes { get; set; } = [];
 }

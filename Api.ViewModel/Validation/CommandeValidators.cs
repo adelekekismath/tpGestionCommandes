@@ -1,8 +1,8 @@
-using Api.Contracts;
+using Api.ViewModel.DTOs;
 using FluentValidation;
 using Api.Domain.Enums;
 
-namespace Api.Validation;
+namespace Api.ViewModel.Validation;
 public class CommandeCreateDtoValidator : AbstractValidator<CommandeCreateDto>
 {
     
