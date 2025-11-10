@@ -4,11 +4,15 @@ using Api.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-public class LigneCommandeConfiguration: IEntityTypeConfigurationuration<LigneCommande>{
-    public Config(EntityTypeBuilder<LigneCommande> builder)
+public class LigneCommandeConfiguration: IEntityTypeConfiguration<LigneCommande>{
+    public void Configure(EntityTypeBuilder<LigneCommande> builder)
     {
-        modelBuilder.Entity<LigneCommande>()
-        .Property(c => c.PrixUnitaire)
-        .HasPrecision(18, 2);
+        builder.HasKey(c => c.Id);
+
+        builder.Property(c => c.Id)
+            .ValueGeneratedOnAdd();
+
+        builder.Property(c => c.PrixUnitaire)
+        .HasColumnType("decimal(18,2)");
     }
 }

@@ -10,6 +10,8 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using System.Text.Unicode;
 using Microsoft.EntityFrameworkCore.InMemory;
+using Api.Application.Services.Auths;
+using Microsoft.AspNetCore.Identity;
 
 [assembly: InternalsVisibleTo("Api.Tests")]
 
@@ -59,6 +61,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 }
 
 );
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddControllers()
 .AddJsonOptions(opt =>

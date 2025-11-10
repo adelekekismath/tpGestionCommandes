@@ -6,7 +6,6 @@ namespace Api.ViewModel.Validation;
 public class CommandeCreateDtoValidator : AbstractValidator<CommandeCreateDto>
 {
     
-
     public CommandeCreateDtoValidator()
     {
         RuleFor(x => x.NumeroCommande)

@@ -4,15 +4,20 @@ using Api.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-public class ProduitConfiguration: IEntityTypeConfigurationuration<Produit>
+public class ProduitConfiguration: IEntityTypeConfiguration<Produit>
 {
-    public Configure(EntityTypeBuilder<Produit> builder)
+    public void Configure(EntityTypeBuilder<Produit> builder)
     {
-        modelBuilder.Entity<Produit>()
-        .Property(c => c.Prix)
-        .HasPrecision(18, 2);
+        builder
+            .HasKey(c => c.Id);
 
-        modelBuilder.Entity<Produit>()
+        builder
+            .Property(c => c.Id)
+            .ValueGeneratedOnAdd();
+
+        builder.Property(p => p.Prix).HasColumnType("decimal(18,2)");
+
+        builder
         .HasMany(c => c.LignesCommande)
         .WithOne(c => c.Produit);
     }

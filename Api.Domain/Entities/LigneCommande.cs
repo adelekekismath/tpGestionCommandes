@@ -2,8 +2,6 @@ namespace Api.Domain.Entities;
 
 public class LigneCommande
 {
-    [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)] 
     public int Id;
     public int Quantite { get; set; }
     public float PrixUnitaire { get; set; }
