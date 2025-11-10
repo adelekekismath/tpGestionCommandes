@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Api.Databases.Contexts;
 using System.Text.Json.Serialization;
 using System.Runtime.CompilerServices;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -11,7 +12,11 @@ using System.Text;
 using System.Text.Unicode;
 using Microsoft.EntityFrameworkCore.InMemory;
 using Api.Application.Services.Auths;
+using Api.Application.Services.Commandes;
+using Api.Application.Services.Clients;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
+using Api.ViewModel.Validation;
 
 [assembly: InternalsVisibleTo("Api.Tests")]
 
@@ -41,10 +46,18 @@ else
     );
 }
 
+builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
+
 var jwt = builder.Configuration.GetSection("Jwt");
 var keyBytes = Encoding.UTF8.GetBytes(jwt["Key"]!);
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
 .AddJwtBearer(opt =>
 {
     opt.TokenValidationParameters = new TokenValidationParameters
@@ -56,16 +69,24 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         ValidIssuer = jwt["Issuer"],
         ValidAudience = jwt["Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
-        ClockSkew = TimeSpan.Zero
+        ClockSkew = TimeSpan.Zero,
+        RoleClaimType = ClaimTypes.Role
     };
-}
+});
 
-);
+var requireAuthPolicy = new AuthorizationPolicyBuilder()
+	.RequireAuthenticatedUser()
+	.Build();
+
+builder.Services.AddAuthorizationBuilder()
+	.SetFallbackPolicy(requireAuthPolicy);
+
+
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddIdentity<IdentityUser, IdentityRole>()
-    .AddEntityFrameworkStores<AppDbContext>()
-    .AddDefaultTokenProviders();
+
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ICommandeService, CommandeService>();
+builder.Services.AddScoped<IClientService, ClientService>();
 
 builder.Services.AddControllers()
 .AddJsonOptions(opt =>
@@ -76,7 +97,7 @@ builder.Services.AddControllers()
 );
 
 builder.Services.AddFluentValidationAutoValidation();
-builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+builder.Services.AddValidatorsFromAssemblyContaining<ClientCreateDtoValidator>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -106,6 +127,12 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    await RoleHelper.EnsureRolesCreated(roleManager);
+}
 
 app.UseExceptionHandler("/error");
 

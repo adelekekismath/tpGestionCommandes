@@ -27,26 +27,34 @@ public class AuthService : IAuthService
     public async Task<LoginResponse?> AuthenticateAsync(LoginRequest request)
     {
         var user = await _userManager.FindByNameAsync(request.Username);
+
         if (user == null || !await _userManager.CheckPasswordAsync(user, request.Password))
-        {
             return null;
-        }
+
         Console.WriteLine($"User {user.Email} authenticated successfully.");
 
         var userRoles = await _userManager.GetRolesAsync(user);
+        var role = userRoles.FirstOrDefault() ?? "User";
 
-        var authClaims = new List<Claim>
+        var authClaims = new[]
         {
-            new Claim(ClaimTypes.Name, user.UserName ?? string.Empty),
-            new Claim(ClaimTypes.NameIdentifier, user.Id),
-            new Claim(ClaimTypes.Email, user.Email ?? string.Empty)
+            new Claim(ClaimTypes.NameIdentifier, user.Id),  
+            new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
+            new Claim(ClaimTypes.Role, role)
         };
-        var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JWT:Key"]));
 
-        var expires = DateTime.UtcNow.AddMinutes(double.Parse(_config["JWT:ExpiresMinutes"]));
+        var authSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(_config["Jwt:Key"])
+        );
+
+
+        var expires = DateTime.Now.AddMinutes(
+            double.Parse(_config["Jwt:ExpiresMinutes"])
+        );
+
         var token = new JwtSecurityToken(
-            issuer: _config["JWT:Issuer"],
-            audience: _config["JWT:Audience"],
+            issuer: _config["Jwt:Issuer"],
+            audience: _config["Jwt:Audience"],
             claims: authClaims,
             expires: expires,
             signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
@@ -54,7 +62,6 @@ public class AuthService : IAuthService
 
         var jwt = new JwtSecurityTokenHandler().WriteToken(token);
         return new LoginResponse(jwt, expires);
-
     }
 
     public async Task<IdentityUser?> RegisterAsync(UserCreateDto user)
@@ -67,6 +74,7 @@ public class AuthService : IAuthService
         };
 
         var createdUser = await _userManager.CreateAsync(newUser, user.Password);
+        await _userManager.AddToRoleAsync(newUser, "User");
 
         return newUser;
     }

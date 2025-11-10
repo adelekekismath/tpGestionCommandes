@@ -4,76 +4,59 @@ using Api.Databases.Contexts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Api.Application.Services.Clients;
 
 namespace Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class ClientsController(AppDbContext db) : ControllerBase
+public class ClientsController(IClientService _service) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Client>>> GetAll()
     {
-        return Ok(await db.Clients.AsNoTracking().ToListAsync());
+        return Ok(await _service.GetAllAsync());
     }
 
     [HttpGet("{id:int}")]
     public async Task<ActionResult<Client>> GetById(int id)
     {
-        var client = await db.Clients
-        .Include(c => c.Commandes)
-        .AsNoTracking()
-        .FirstOrDefaultAsync(c => c.Id == id);
-
-        return client != null ? Ok(client) : NotFound();
+        var client = await _service.GetByIdAsync(id);
+        if (client is null) return NotFound();
+        return Ok(client);
     }
 
     [HttpPost]
     public async Task<ActionResult<Client>> Create([FromBody] ClientBaseDto dto)
     {
-        var newClient = new Client
+        var client = new Client
         {
             Nom = dto.Nom,
             Prenom = dto.Prenom,
             Adresse = dto.Adresse,
             Email = dto.Email,
-            Telephone = dto.Telephone,
+            Telephone = dto.Telephone
         };
 
-        db.Clients.Add(newClient);
-        await db.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetById), new { id = newClient.Id }, newClient);
+        Console.WriteLine("Creating client: " + client.Nom);
+
+        var createdClient = await _service.CreateAsync(client);
+        return CreatedAtAction(nameof(GetById), new { id = createdClient.Id }, createdClient);
     }
 
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, [FromBody] ClientBaseDto dto)
     {
-        var clientToUpdate = await db.Clients.FindAsync(id);
-        if (clientToUpdate != null)
-        {
-            clientToUpdate.Nom = dto.Nom;
-            clientToUpdate.Prenom = dto.Prenom;
-            clientToUpdate.Adresse = dto.Adresse;
-            clientToUpdate.Email = dto.Email;
-            clientToUpdate.Telephone = dto.Telephone;
-
-            await db.SaveChangesAsync();
-            return NoContent();
-        }
-        else
-        {
-            return NotFound();
-        }
+        var updatedClient = await _service.UpdateAsync(id, dto);
+        if (updatedClient is null) return NotFound();
+        return Ok(updatedClient);
     }
 
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var clientToDelete = await db.Clients.FindAsync(id);
-        if (clientToDelete is null) return NotFound();
-
-        db.Clients.Remove(clientToDelete);
-        await db.SaveChangesAsync();
+        var deleted = await _service.DeleteAsync(id);
+        if (!deleted) return NotFound();
         return NoContent();
     }
 

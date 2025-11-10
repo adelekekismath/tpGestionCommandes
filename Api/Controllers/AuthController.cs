@@ -25,6 +25,7 @@ public class AuthController: ControllerBase
         _authService = authService;
     }
 
+    [AllowAnonymous]
     [HttpPost("login")]
     [ProducesResponseType(typeof(LoginResponse), 200)]
     [ProducesResponseType(401)]
@@ -64,7 +65,7 @@ public class AuthController: ControllerBase
         });
     }
 
-
+    [AllowAnonymous]
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] UserCreateDto userDto)
     {
