@@ -14,6 +14,9 @@ using Microsoft.EntityFrameworkCore.InMemory;
 using Api.Application.Services.Auths;
 using Api.Application.Services.Commandes;
 using Api.Application.Services.Clients;
+using Api.Application.Services.Produits;
+using Api.Application.Services.LignesCommandes;
+using Api.Application.Services.Categories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Api.ViewModel.Validation;
@@ -87,6 +90,9 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICommandeService, CommandeService>();
 builder.Services.AddScoped<IClientService, ClientService>();
+builder.Services.AddScoped<IProduitService, ProduitService>();
+builder.Services.AddScoped<ILigneCommandeService, LigneCommandeService>();
+builder.Services.AddScoped<ICategorieService, CategorieService>();
 
 builder.Services.AddControllers()
 .AddJsonOptions(opt =>

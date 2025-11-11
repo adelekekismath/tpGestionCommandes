@@ -1,3 +1,3 @@
 namespace Api.ViewModel.DTOs;
 
-public record CategorieBaseDto (string Name);
+public record CategorieBaseDto (string Nom, string Description);
