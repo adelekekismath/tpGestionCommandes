@@ -17,9 +17,12 @@ using Api.Application.Services.Clients;
 using Api.Application.Services.Produits;
 using Api.Application.Services.LignesCommandes;
 using Api.Application.Services.Categories;
+using Api.Databases.UnitOfWork;
+using Api.Databases.Repositories.BaseRepository;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Api.ViewModel.Validation;
+using Api.Domain.Entities;
 
 [assembly: InternalsVisibleTo("Api.Tests")]
 
@@ -87,12 +90,17 @@ builder.Services.AddAuthorizationBuilder()
 
 builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<ICommandeService, CommandeService>();
-builder.Services.AddScoped<IClientService, ClientService>();
-builder.Services.AddScoped<IProduitService, ProduitService>();
-builder.Services.AddScoped<ILigneCommandeService, LigneCommandeService>();
-builder.Services.AddScoped<ICategorieService, CategorieService>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+builder.Services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
+
+builder.Services.AddTransient<ICommandeService, CommandeService>();
+builder.Services.AddTransient<IClientService, ClientService>();
+builder.Services.AddTransient<IProduitService, ProduitService>();
+builder.Services.AddTransient<ILigneCommandeService, LigneCommandeService>();
+builder.Services.AddTransient<ICategorieService, CategorieService>();
+builder.Services.AddTransient<IBaseRepository<Categorie>, BaseRepository<Categorie>>();
+builder.Services.AddTransient<IAuthService, AuthService>();
 
 builder.Services.AddControllers()
 .AddJsonOptions(opt =>

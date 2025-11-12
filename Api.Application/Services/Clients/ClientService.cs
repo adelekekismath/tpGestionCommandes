@@ -4,48 +4,49 @@ using Api.Domain.Entities;
 using Api.Databases.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Api.ViewModel.DTOs;
+using Api.Databases.UnitOfWork;
 
-public class ClientService: IClientService
+public class ClientService(IUnitOfWork unitOfWork) : IClientService
 {
-    private readonly AppDbContext _db;
-    public ClientService(AppDbContext db)
-    {
-        _db = db;
-    }
+    private readonly IUnitOfWork _unityOfWork = unitOfWork;
+
     public async Task<Client?> GetByIdAsync(int id)
-        => await _db.Clients.FindAsync(id);
+        => await _unityOfWork.Clients.GetByIdAsync(id);
 
     public async Task<IEnumerable<Client>> GetAllAsync()
-        => await _db.Clients.AsNoTracking().ToListAsync();
+        => await _unityOfWork.Clients.GetAllAsync();
 
     public async Task<Client> CreateAsync(Client client)
     {
-        _db.Clients.Add(client);
-        await _db.SaveChangesAsync();
+        await _unityOfWork.Clients.AddAsync(client);
+        await _unityOfWork.SaveChangesAsync();
         return client;
     }
 
-    public async Task<Client?> UpdateAsync(int id,ClientBaseDto client)
+    public async Task<Client?> UpdateAsync(int id, ClientBaseDto dto)
     {
-        var existingClient = await _db.Clients.FindAsync(id);
-        if (existingClient is null) return null;
+        var client = await _unityOfWork.Clients.GetByIdAsync(id);
+        if (client is null) return null;
 
-        existingClient.Nom = client.Nom;
-        existingClient.Email = client.Email;
-        existingClient.Telephone = client.Telephone;
-        existingClient.Adresse = client.Adresse;
+        client.Nom = dto.Nom;
+        client.Prenom = dto.Prenom;
+        client.Email = dto.Email;
+        client.Telephone = dto.Telephone;
+        client.Adresse = dto.Adresse;
 
-        await _db.SaveChangesAsync();
-        return existingClient;
+        _unityOfWork.Clients.UpdateAsync(client);
+        await _unityOfWork.SaveChangesAsync();
+
+        return client;
     }
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var client = await _db.Clients.FindAsync(id);
+        var client = await _unityOfWork.Clients.GetByIdAsync(id);
         if (client is null) return false;
 
-        _db.Clients.Remove(client);
-        await _db.SaveChangesAsync();
+        _unityOfWork.Clients.UpdateAsync(client);
+        await _unityOfWork.SaveChangesAsync();
         return true;
     }
 }

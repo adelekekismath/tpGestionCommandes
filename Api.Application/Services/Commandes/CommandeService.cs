@@ -5,23 +5,18 @@ using Api.Domain.Entities;
 using Api.ViewModel.DTOs;
 using Microsoft.EntityFrameworkCore;
 
-public class CommandeService : ICommandeService
+using Api.Databases.UnitOfWork;
+
+public class CommandeService(IUnitOfWork unitOfWork) : ICommandeService
 {
-    private readonly AppDbContext _db;
-    public CommandeService(AppDbContext db)
-    {
-        _db = db;
-    }
+    private readonly IUnitOfWork _unityOfWork = unitOfWork ;
 
     public async Task<IEnumerable<Commande>> GetAllAsync()
-        => await _db.Commandes.AsNoTracking().ToListAsync();
+        => await _unityOfWork.Commandes.GetAllAsync();
 
     public async Task<Commande?> GetByIdAsync(int id)
     {
-        return await _db.Commandes
-            .Include(c => c.Client)
-            .AsNoTracking()
-            .FirstOrDefaultAsync(c => c.Id == id);
+        return await _unityOfWork.Commandes.GetByIdAsync(id);
     }
 
     public async Task<Commande> CreateAsync(CommandeCreateDto dto)
@@ -34,30 +29,30 @@ public class CommandeService : ICommandeService
             ClientId = dto.ClientId
         };
 
-        _db.Commandes.Add(entity);
-        await _db.SaveChangesAsync();
+        _unityOfWork.Commandes.AddAsync(entity);
+        await _unityOfWork.SaveChangesAsync();
         return entity;
     }
 
     public async Task<bool> UpdateAsync(int id, CommandeUpdateDto dto)
     {
-        var commande = await _db.Commandes.FindAsync(id);
+        var commande = await _unityOfWork.Commandes.GetByIdAsync(id);
         if (commande is null) return false;
 
         commande.MontantTotal = dto.MontantTotal;
         commande.Statut = dto.Statut;
-
-        await _db.SaveChangesAsync();
+        _unityOfWork.Commandes.UpdateAsync(commande);
+        await _unityOfWork.SaveChangesAsync();
         return true;
     }
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var commande = await _db.Commandes.FindAsync(id);
+        var commande = await _unityOfWork.Commandes.GetByIdAsync(id);
         if (commande is null) return false;
 
-        _db.Commandes.Remove(commande);
-        await _db.SaveChangesAsync();
+        _unityOfWork.Commandes.DeleteAsync(commande);
+        await _unityOfWork.SaveChangesAsync();
         return true;
     }
 }

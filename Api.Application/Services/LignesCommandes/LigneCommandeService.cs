@@ -5,19 +5,20 @@ using Api.Databases.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Api.ViewModel.DTOs;
 using Api.Domain.Entities;
+using Api.Databases.UnitOfWork;
 
-public class LigneCommandeService(AppDbContext _context): ILigneCommandeService
+public class LigneCommandeService(IUnitOfWork unitOfWork): ILigneCommandeService
 {
-    private readonly AppDbContext _db = _context;
+    private readonly IUnitOfWork _unityOfWork = unitOfWork;
 
     public async Task<IEnumerable<LigneCommande>> GetAllAsync()
     {
-        return await _db.LigneCommandes.AsNoTracking().ToListAsync();
+        return await _unityOfWork.LigneCommandes.GetAllAsync();
     }
 
     public async Task<LigneCommande?> GetByIdAsync(int id)
     {
-        return await _db.LigneCommandes.FindAsync(id);
+        return await _unityOfWork.LigneCommandes.GetByIdAsync(id);
     }
 
     public async Task<LigneCommande> CreateAsync(LigneCommandeCreateDto dto)
@@ -30,32 +31,32 @@ public class LigneCommandeService(AppDbContext _context): ILigneCommandeService
             PrixUnitaire = dto.PrixUnitaire
         };
 
-        _db.LigneCommandes.Add(ligneCommande);
-        await _db.SaveChangesAsync();
+        _unityOfWork.LigneCommandes.AddAsync(ligneCommande);
+        await _unityOfWork.SaveChangesAsync();
         return ligneCommande;
     }
 
     public async Task<bool> UpdateAsync(int id, LigneCommandeUpdateDto dto)
     {
-        var ligneCommande = await _db.LigneCommandes.FindAsync(id);
+        var ligneCommande = await _unityOfWork.LigneCommandes.GetByIdAsync(id);
         if (ligneCommande is null) return false;
 
         ligneCommande.ProduitId = dto.ProduitId;
         ligneCommande.Quantite = dto.Quantite;
         ligneCommande.PrixUnitaire = dto.PrixUnitaire;
 
-        _db.LigneCommandes.Update(ligneCommande);
-        await _db.SaveChangesAsync();
+        _unityOfWork.LigneCommandes.UpdateAsync(ligneCommande);
+        await _unityOfWork.SaveChangesAsync();
         return true;
     }
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var ligneCommande = await _db.LigneCommandes.FindAsync(id);
+        var ligneCommande = await _unityOfWork.LigneCommandes.GetByIdAsync(id);
         if (ligneCommande is null) return false;
 
-        _db.LigneCommandes.Remove(ligneCommande);
-        await _db.SaveChangesAsync();
+        _unityOfWork.LigneCommandes.DeleteAsync(ligneCommande);
+        await _unityOfWork.SaveChangesAsync();
         return true;
     }
 }
