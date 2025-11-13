@@ -29,7 +29,7 @@ public class CategorieService(IUnitOfWork unitOfWork): ICategorieService
             Description = dto.Description
         };
 
-        _unityOfWork.Categories.AddAsync(categorie);
+        await _unityOfWork.Categories.AddAsync(categorie);
         await _unityOfWork.SaveChangesAsync();
         return categorie;
     }

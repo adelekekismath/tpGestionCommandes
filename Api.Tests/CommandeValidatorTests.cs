@@ -1,5 +1,5 @@
-using Api.Contracts;
-using Api.Validation;
+using Api.ViewModel.DTOs;
+using Api.ViewModel.Validation;
 using Api.Domain.Enums;
 using FluentAssertions;
 

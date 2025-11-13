@@ -31,7 +31,7 @@ public class LigneCommandeService(IUnitOfWork unitOfWork): ILigneCommandeService
             PrixUnitaire = dto.PrixUnitaire
         };
 
-        _unityOfWork.LigneCommandes.AddAsync(ligneCommande);
+        await _unityOfWork.LigneCommandes.AddAsync(ligneCommande);
         await _unityOfWork.SaveChangesAsync();
         return ligneCommande;
     }

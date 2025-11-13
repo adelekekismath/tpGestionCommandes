@@ -8,6 +8,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
+using System.Linq;
+
 
 public class CustomAuthFactory : WebApplicationFactory<Program>
 {
@@ -30,33 +34,65 @@ public class CustomAuthFactory : WebApplicationFactory<Program>
                 services.Remove(descriptor);
 
             services.AddDbContext<AppDbContext>(options =>
-                options.UseInMemoryDatabase("TestDb"));
+                options.UseInMemoryDatabase($"IntegrationTestsDb_{Guid.NewGuid()}"));
 
             var sp = services.BuildServiceProvider();
 
-            using var scope = sp.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            Task.Run(async () =>
+            {
+                using var scope = sp.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-            db.Database.EnsureDeleted();
-            db.Database.EnsureCreated();
-            db.ChangeTracker.Clear();
-            db.ChangeTracker.AutoDetectChangesEnabled = false;
+                await db.Database.EnsureDeletedAsync();
+                await db.Database.EnsureCreatedAsync();
+                db.ChangeTracker.Clear();
+                
+                const string userRoleName = "USER";
 
-            var hasher = new Microsoft.AspNetCore.Identity.PasswordHasher<User>();
+                var userRole = await roleManager.FindByNameAsync(userRoleName);
 
-            db.Users.AddRange(
-                new User { Username = "mockuser", PasswordHash = hasher.HashPassword(null, "P@ssw0rd!") },
-                new User { Username = "testuser", PasswordHash = hasher.HashPassword(null, "Test1234") }
-            );
+                if (userRole == null)
+                {
+                    await roleManager.CreateAsync(new IdentityRole(userRoleName));
+                }
+                var role = await roleManager.FindByNameAsync("User");
+                Console.WriteLine($"role?.NormalizedName {role}");
 
-            db.Clients.AddRange(
-                new Client { Nom = "Smith", Prenom = "Alice", Email = "alice@test.com", Adresse = "Paris", Telephone = "0600000000" },
-                new Client { Nom = "Jones", Prenom = "Bob", Email = "bob@test.com", Adresse = "Lyon", Telephone = "0700000000" }
-            );
 
-            db.SaveChanges();
-            db.ChangeTracker.AutoDetectChangesEnabled = true;
+                var users = new[]
+                {
+                    new IdentityUser { UserName = "mockuser", Email = "mock@test.com", EmailConfirmed = true },
+                    new IdentityUser { UserName = "testuser", Email = "test@test.com", EmailConfirmed = true }
+                };
 
+                foreach (var user in users)
+                {
+                    var existingUser = await userManager.FindByNameAsync(user.UserName);
+                    
+
+                    if (existingUser == null)
+                    {
+                        var result = await userManager.CreateAsync(user, "P@ssw0rd!");
+                        if (result.Succeeded)
+                        {
+                            if (!await userManager.IsInRoleAsync(user, userRoleName))
+                            {
+                                await userManager.AddToRoleAsync(user, userRoleName);
+                            }
+                        }
+                    }
+                }
+
+                db.Clients.AddRange(
+                    new Client { Nom = "Smith", Prenom = "Alice", Email = "alice@test.com", Adresse = "Paris", Telephone = "0600000000" },
+                    new Client { Nom = "Jones", Prenom = "Bob", Email = "bob@test.com", Adresse = "Lyon", Telephone = "0700000000" }
+                );
+
+                await db.SaveChangesAsync();
+
+            }).GetAwaiter().GetResult(); 
         });
     }
 }

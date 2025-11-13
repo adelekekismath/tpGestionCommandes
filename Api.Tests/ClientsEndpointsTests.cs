@@ -1,6 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
-using Api.Contracts;
+using Api.ViewModel.DTOs;
 using Microsoft.AspNetCore.Mvc.Testing;
 using System.Net.Http.Headers;
 using Api.Domain.Entities;
@@ -30,7 +30,7 @@ public class ClientsEndpointsTests : IClassFixture<CustomAuthFactory>
     private async Task<string> AuthenticateOnceAsync()
     {
         var uniqueUsername = $"clientUser_{DateTime.UtcNow.Ticks}";
-        var registerDto = new UserCreateDto(uniqueUsername, "Password1");
+        var registerDto = new UserCreateDto(uniqueUsername, "Password1", $"{uniqueUsername}@example.com");
         await _client.PostAsJsonAsync("/api/auth/register", registerDto);
 
         var loginDto = new { Username = uniqueUsername, Password = "Password1" };

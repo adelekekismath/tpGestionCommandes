@@ -20,7 +20,7 @@ public class ProduitService( IUnitOfWork unitOfWork ) : IProduitService
             CategorieId = dto.CategorieId
         };
 
-        _unityOfWork.Produits.AddAsync(produit);
+        await _unityOfWork.Produits.AddAsync(produit);
         await _unityOfWork.SaveChangesAsync();
         return produit;
     }

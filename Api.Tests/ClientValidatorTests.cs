@@ -1,6 +1,6 @@
-using Api.Contracts;
+using Api.ViewModel.DTOs;
 using Api.Domain.Enums;
-using Api.Validation;       
+using Api.ViewModel.Validation;     
 using FluentAssertions;
 
 using Xunit;

@@ -74,7 +74,7 @@ public class AuthService : IAuthService
         };
 
         var createdUser = await _userManager.CreateAsync(newUser, user.Password);
-        await _userManager.AddToRoleAsync(newUser, "User");
+        await _userManager.AddToRoleAsync(newUser, "USER");
 
         return newUser;
     }
